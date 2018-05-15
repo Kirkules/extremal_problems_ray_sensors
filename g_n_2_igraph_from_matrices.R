@@ -32,7 +32,7 @@ names(adjacencies) <- V(g)$name
 for (i in 1:12){
   for (j in 1:12){
     if (adjacencies[[i]][[j]] == 1){
-      g <- add_edges(g, V(g)$name[c(i, j)], edge_type="accordion")
+      g <- add_edges(g, V(g)$name[c(i, j)], edge_type="half")
     } else if (adjacencies[[i]][[j]] == 2){
       g <- add_edges(g, V(g)$name[c(i, j)], edge_type="complete")
     }
@@ -46,7 +46,7 @@ alpha <- 0.5
 
 
 # edges q3-m1 and q1-m3 are actually complete in the union, because the order in which the
-# accordions unfold are opposite in G_TB and G_AB for these edges
+# halfs unfold are opposite in G_TB and G_AB for these edges
 E(g)["q3" %--% "m1"]$edge_type <- "complete"
 E(g)["q1" %--% "m3"]$edge_type <- "complete"
 
@@ -75,9 +75,12 @@ V(g)[c('m2', 'm4')]$size <- 2.5*base_size
 
 # Set edge colors
 E(g)$color <- "black"
-E(g)$color[which(E(g)$edge_type == "accordion")] <- "blue"
+E(g)$color[which(E(g)$edge_type == "half")] <- "blue"
 E(g)$width <- 1
-E(g)$width[which(E(g)$edge_type == "accordion")] <- 3
+E(g)$width[which(E(g)$edge_type == "half")] <- 3
+E(g)$lty[which(E(g)$edge_type == "complete")] <- "dotted"
+E(g)$lty[which(E(g)$edge_type == "half")] <- "solid"
+
 
 # Get subgraph with only "complete" edges
 cg <- delete_edges(g, edges=E(g)[E(g)$edge_type != "complete"])
@@ -87,17 +90,17 @@ cg_maximal_ivs <- maximal_ivs(cg)                           # maximal, not max-w
 cg_maximal_ivs_weights <- sapply(cg_maximal_ivs, vx.set.weight) # get list of weights
 
 # Pare down to maximal-IVSs that have total weight > n/4, since only (complements of) these 
-#  are small vx covers and need further checking in accordion edges
+#  are small vx covers and need further checking in half edges
 cg_big_maximal_ivs <- cg_maximal_ivs[cg_maximal_ivs_weights > total_weight/4]
 
-# Get the subgraphs of ag (accordion restricted g) with vertices in each cg_big_maximal_ivs, and tkplot them
+# Get the subgraphs of ag (half restricted g) with vertices in each cg_big_maximal_ivs, and tkplot them
 cg_big_maximal_ivs_namelists <- sapply(cg_big_maximal_ivs, function(vertex_set){
   vertex_set$name
 })
 
 # extract these subgraphs from ag
 ag_subgraphs <- list()
-ag <- delete_edges(g, edges=E(g)[E(g)$edge_type != "accordion"])
+ag <- delete_edges(g, edges=E(g)[E(g)$edge_type != "half"])
 for (i in 1:length(cg_big_maximal_ivs_namelists)){
   sg <- induced_subgraph(ag, cg_big_maximal_ivs_namelists[[i]])
   #V(sg)$label <- NA
